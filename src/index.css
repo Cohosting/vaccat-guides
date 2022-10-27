@@ -1,0 +1,35 @@
+@font-face {
+    font-family: 'GTBold';
+    src: url('./fonts/GT-Walsheim-Bold.ttf') format('truetype');
+    font-weight: bold;
+  }
+  @font-face {
+    font-family: 'GTBoldOblique';
+    src: url('./fonts/GT-Walsheim-Bold-Oblique.ttf') format('truetype');
+    font-weight: bold;
+  }
+  @font-face {
+    font-family: 'GTMedium';
+    src: url('./fonts/GT-Walsheim-Medium.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'GTLight';
+    src: url('./fonts/GT-Walsheim-Light.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'GTRegular';
+    src: url('./fonts/GT-Walsheim-Regular.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'GTMediumOblique';
+    src: url('./fonts/GT-Walsheim-Medium-Oblique.ttf')
+      format('truetype');
+    font-weight: 600;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap');
+  
+  @import url('https://fonts.googleapis.com/css2?family=Kurale&display=swap');
+  
+  
