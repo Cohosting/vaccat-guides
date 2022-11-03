@@ -9,13 +9,17 @@ import './index.css';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './routes';
 import { CreateGuideContextComponent } from './pages/create-guide/context';
+import { AuthContextComponent } from './context/auth';
 
 function App() {
   return (
     <ChakraProvider theme={theme}>
+      <AuthContextComponent>
       <CreateGuideContextComponent>
         <RouterProvider router={router} />
       </CreateGuideContextComponent>
+      </AuthContextComponent>
+
     </ChakraProvider>
   );
 }
