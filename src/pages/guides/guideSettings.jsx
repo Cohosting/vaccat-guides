@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Spinner, Text } from '@chakra-ui/react';
+import { Box, Button, Flex, Spinner, Text, useDisclosure } from '@chakra-ui/react';
 import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiSettings } from 'react-icons/fi';
@@ -7,16 +7,21 @@ import { SearchSelect } from '../../components/searchSelect';
 import { contextObject } from '../../context/auth';
 import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { db } from '../../firebase';
+import axios from 'axios';
+import { CreateCatagoryModal } from '../../components/createCatagoryModal';
 
 
 export const GuideSettings = () => {
+    const { isOpen, onClose, onOpen } = useDisclosure()
+
     const [dependentState, setDependentState] = useState({
         catagories: [],
         properties: []
     });
     const [guide, setGuide] = useState({})
     const [isUpdating, setIsUpdating] = useState(false)
-    const [isLoaded, setIsLoaded] = useState(false)
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [notSelectedButPreviouslySelected, setNotSelectedButPreviouslySelected] = useState([])
 
     const [selectedState, setSelectedState] = useState({
         selectedProperties: [],
@@ -51,7 +56,8 @@ export const GuideSettings = () => {
             })
             catagorySnapshot.forEach((el) => {
                 catagory.push(el.data())
-            })
+            });
+            console.log(property)
             setDependentState({
                 properties: property,
                 catagories: catagory
@@ -88,12 +94,17 @@ export const GuideSettings = () => {
 
     }
     const handleCatagorySelect = (isChecked, el) => {
-        let neweArr = [...selectedCatagories]
+        let neweArr = [...selectedCatagories];
+        let newNotSelectArr = [...notSelectedButPreviouslySelected]
 
         if (isChecked) {
-            neweArr.push(el)
+            neweArr.push(el);
+            newNotSelectArr = newNotSelectArr.filter((el1) => !el1.id.includes(el.id));
+            setNotSelectedButPreviouslySelected(newNotSelectArr)
         } else {
-            neweArr = neweArr.filter((el1) => !el1.id.includes(el.id))
+            neweArr = neweArr.filter((el1) => !el1.id.includes(el.id));
+            el.guideSelected = el.guideSelected.filter((gui) => gui !== guideId);
+            setNotSelectedButPreviouslySelected([...new Set([...notSelectedButPreviouslySelected, el])])
         }
 
         setSelectedState({
@@ -102,38 +113,23 @@ export const GuideSettings = () => {
         });
     };
 
-    const handleResetProperty = () => {
-        setSelectedState({
-            ...selectedState,
-            selectedProperties: []
-        })
-    };
+
     const handleResetCatagory = () => {
         setSelectedState({
             ...selectedState,
             selectedCatagories: []
         })
     };
-    const handleSelectAllProperty = () => {
-        let selectedPropertiesId = [];
 
-        properties.forEach((el) => {
-            selectedPropertiesId.push(el.id)
-
-        })
-
-        setSelectedState({
-            ...selectedState,
-            selectedProperties: selectedPropertiesId
-        })
-    };
     const handleSelectAllCatagory = () => {
         let selectedCatagories = [];
 
         catagories.forEach((el) => {
-            selectedCatagories.push(el.id)
+            selectedCatagories.push(el)
 
-        })
+        });
+
+        console.log(selectedCatagories)
 
         setSelectedState({
             ...selectedState,
@@ -143,21 +139,42 @@ export const GuideSettings = () => {
 
 
     const handleUpdate = async () => {
+
         setIsUpdating(true);
         const ref = doc(db, 'guides', guideId);
+        const newRef = collection(db, 'catagories');
 
-        await updateDoc(ref, {
+        console.log({
             selectedCatagories, selectedProperties,
-            catagoriesId: selectedCatagories.map((el) => el.id)
+            catagoriesId: selectedCatagories.map((el) => el.id),
+            catagoryName: selectedCatagories.map((el) => el.name)
         })
+        await updateDoc(ref, {
+            selectedCatagories,
+            catagoriesId: selectedCatagories.map((el) => el.id),
+            catagoryName: selectedCatagories.map((el) => el.name),
+        });
+
+
+        await axios.post(`${process.env.REACT_APP_CLOUD_FUNCTION_API_URL}/update-catagory`, {
+            selectedCatagories: [...selectedCatagories, ...notSelectedButPreviouslySelected],
+            guideId
+        });
 
 
         setIsUpdating(false);
 
         /*         navigate('/guides')
          */
+    };
+
+    console.log({ notSelectedButPreviouslySelected })
+    const onCatagoryCreate = (obj) => {
+        setDependentState({
+            ...dependentState,
+            catagories: [...catagories, obj]
+        });
     }
-    console.log(selectedCatagories)
 
     return (
         <Box px={'30px'} mt={'30px'}>
@@ -167,7 +184,7 @@ export const GuideSettings = () => {
                         <Flex borderBottom={'1px solid'} borderColor={'gray.300'} pb={4} alignItems={'center'} fontSize={'18px'}><FiSettings /> <Text fontWeight={500} ml={2} >Settngs</Text> </Flex>
                         <Flex mt={3}>
                             <Text fontWeight={700} mr={1}>Title:</Text>
-                            <Text>{guide.title}</Text>
+                            <Text>{guide.name}</Text>
                         </Flex>
                         <Flex>
                             <Text fontWeight={700} mr={1}>Description:</Text>
@@ -184,12 +201,18 @@ export const GuideSettings = () => {
                         </Flex>
                         <Box >
                             <Text my={3} fontWeight={700} fontSize={'17px'} >Select Catagory</Text>
-                            <SearchSelect onSelectAll={handleSelectAllCatagory} isLoaded={isLoaded} selectedItems={selectedCatagories} onClearAll={handleResetCatagory} onSelect={handleCatagorySelect} items={catagories} />
+                            <SearchSelect label={'Select catagory'} onSelectAll={handleSelectAllCatagory} isLoaded={isLoaded} selectedItems={selectedCatagories} onClearAll={handleResetCatagory} onSelect={handleCatagorySelect} items={catagories}>
+
+                                <Button onClick={onOpen} size={'md'} bg={'black'} color={'white'}>add catagory</Button>
+
+                            </SearchSelect>
                         </Box>
-                        <Box >
+                        {/*                         <Box >
                             <Text my={3} fontWeight={700} fontSize={'17px'} >Select Properties</Text>
                             <SearchSelect onSelectAll={handleSelectAllProperty} isLoaded={isLoaded} selectedItems={selectedProperties} onClearAll={handleResetProperty} onSelect={handlePropertySelect} items={properties} />
-                        </Box>
+                        </Box> */}
+                        <CreateCatagoryModal cb={onCatagoryCreate} isOpen={isOpen} onOpen={onOpen} onClose={onClose} />
+
 
                         <Flex mt={2} justifyContent={'flex-end'} alignItems={'center'}>
                             <Button variant={'ghost'} onClick={() => navigate('/guides')}  >Go back to all guides</Button>

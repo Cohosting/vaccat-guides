@@ -2,6 +2,7 @@ import { useState } from "react"
 
 
 export const useLocationSearch = () => {
+    const [searchText, setSearchText] = useState('')
     const [suggestions, setSuggestions] = useState([]);
     const [show, setShow] = useState(false);
     const [error, setError] = useState({
@@ -10,7 +11,7 @@ export const useLocationSearch = () => {
     })
     const handleChange = async (e, cb) => {
 
-
+        setSearchText(e.target.value)
         try {
             const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${e.target.value}.json?types=country,address,place&access_token=pk.eyJ1IjoiaGltZWwxMjYiLCJhIjoiY2wxZ2FoeHM4MDd2OTNyb3JlcHZub3R4biJ9.iXUC5niBfA83FT2MYlWvpg&autocomplete=true&country=US`;
 
@@ -39,5 +40,6 @@ export const useLocationSearch = () => {
         setShow,
         handleChange,
         error,
+        searchText
     }
 }

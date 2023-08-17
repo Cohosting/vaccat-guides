@@ -3,7 +3,7 @@ import { Box, Button, Checkbox, Flex, InputGroup, InputLeftElement, Text, Input,
 
 import { AiOutlineSearch } from 'react-icons/ai'
 
-export const SearchSelect = ({ onSelectAll, isLoaded, onClearAll, onSelect, items, selectedItems = [] }) => {
+export const SearchSelect = ({ onSelectAll, isLoaded, onClearAll, onSelect, items, selectedItems = [], label, children }) => {
     const [searchText, setSearchText] = useState('');
     let searchSelectContainer = {
         border: '1px solid #e9e9e9',
@@ -23,7 +23,7 @@ export const SearchSelect = ({ onSelectAll, isLoaded, onClearAll, onSelect, item
             <Flex alignItems={'center'} justifyContent={'space-between'} >
                 <Box>
                     <Checkbox onChange={(e) => e.target.checked ? onSelectAll() : onClearAll()} colorScheme='green' isChecked={isLoaded && (items.length !== 0 || selectedItems.length !== 0) && items.length === selectedItems.length}>
-                        <Text fontWeight={'600'} fontSize={'17px'} >All properties</Text>
+                        <Text fontWeight={'600'} fontSize={'17px'} >{label ? label : "All properties"}</Text>
                     </Checkbox>
 
                 </Box>
@@ -64,6 +64,10 @@ export const SearchSelect = ({ onSelectAll, isLoaded, onClearAll, onSelect, item
 
 
             </Box>
+
+            {
+                children
+            }
 
         </Box>
     )

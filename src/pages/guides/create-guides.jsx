@@ -2,6 +2,7 @@ import { Box, Button, Text } from '@chakra-ui/react'
 import { collection, doc, getDoc, getDocs, query, setDoc, where } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import { GuideForm } from '../../components/guideForm';
 import { Input } from '../../components/Input';
 import { SearchSelect } from '../../components/searchSelect';
 import { contextObject } from '../../context/auth';
@@ -10,6 +11,8 @@ import { handleChange } from '../../utils/input';
 import Editor from './guidesEditor';
 
 export const CreateGuides = () => {
+    const [editorData, setEditorData] = React.useState({});
+
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate()
     const { currentUser } = useContext(contextObject)
@@ -66,7 +69,9 @@ export const CreateGuides = () => {
         await setDoc(ref, {
             ...guideState,
             id: ref.id,
-            createdBy: currentUser.uid
+            createdBy: currentUser.uid,
+            content: editorData,
+            catagoryName: []
         });
         setIsLoading(false);
         navigate(`/guides/settings/${ref.id}`)
@@ -75,34 +80,7 @@ export const CreateGuides = () => {
 
     return (
         <Box px={'25px'} pt={'15px'}>
-            <Text>Create guides</Text>
-            <Input
-                name={'name'}
-                value={name}
-                label={'Name'}
-                onChange={(e) => handleChange(e, setGuideState, guideState)}
-            />
-            <Input
-                name={'description'}
-                value={description}
-                label={'Description'}
-                onChange={(e) => handleChange(e, setGuideState, guideState)}
-            />
-
-            <Text color={'red'} fontSize={'22px'} >Building block  for adding content will be come later****</Text>
-            <Editor />
-            {/*  <Box >
-                <Text my={3} fontWeight={700} fontSize={'17px'} >Select Tags</Text>
-                <SearchSelect />
-            </Box>
-
-            <Box >
-                <Text my={3} fontWeight={700} fontSize={'17px'} >Select Tags</Text>
-                <SearchSelect />
-            </Box> */}
-
-            <Button mt={4} w={'100%'} isLoading={isLoading} onClick={handleCreateGuides}>Create  Guide</Button>
-
+            <GuideForm shouldShowLabel={true} cb={(id) => navigate(`/guides/settings/${id}`)} />
         </Box>
     )
 }

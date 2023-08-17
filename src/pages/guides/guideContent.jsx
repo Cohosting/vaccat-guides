@@ -1,35 +1,35 @@
-import { default as React, useEffect, useRef } from 'react';
+import { Box } from '@chakra-ui/react'
+import { doc, getDoc } from 'firebase/firestore';
+import React, { useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { db } from '../../firebase';
 import EditorJS from '@editorjs/editorjs';
+import edjsHTML from "editorjs-html";
 import Header from '@editorjs/header';
-import { Box } from '@chakra-ui/react';
 import LinkTool from '@editorjs/link';
 import ImageTool from '@editorjs/image';
 import List from '@editorjs/list';
 import Checklist from '@editorjs/checklist';
 import Paragraph from '@editorjs/paragraph';
 import Warning from '@editorjs/warning';
-
-
-
 const EDITTOR_HOLDER_ID = 'editorjs';
 
-const Editor = ({ editorData, setEditorData }) => {
+
+
+export const GuideContent = () => {
+    const { id } = useParams();
+    const [guideCont, setGuideCont] = useState()
+    const edjsParser = edjsHTML();
+
     const ejInstance = useRef();
 
     const initEditor = () => {
         const editor = new EditorJS({
             holder: EDITTOR_HOLDER_ID,
             logLevel: "ERROR",
-            data: editorData,
-            onReady: () => {
-                ejInstance.current = editor;
-            },
-            onChange: async () => {
-                let content = await editor.saver.save();
-                // Put your logic here to save this data to your DB
-                setEditorData(content);
-            },
+            data: guideCont.content,
             autofocus: true,
+            readOnly: true,
             tools: {
                 header: {
                     class: Header,
@@ -81,10 +81,25 @@ const Editor = ({ editorData, setEditorData }) => {
                 },
 
             },
+
         });
     };
-    // This will run only once
     useEffect(() => {
+
+        (async () => {
+            const ref = doc(db, 'guides', id);
+            const snap = await getDoc(ref);
+            const data = snap.data();
+            setGuideCont(data)
+
+        })();
+
+        return () => {
+
+        }
+    }, []);
+    useEffect(() => {
+        if (!guideCont) return
         if (!ejInstance.current) {
             initEditor();
         }
@@ -92,16 +107,20 @@ const Editor = ({ editorData, setEditorData }) => {
             ejInstance.current?.destroy();
             ejInstance.current = null;
         }
-    }, []);
-
+    }, [guideCont]);
 
     return (
-        <Box /* bg={'#eef5fa'}*/ p={'27px'} borderRadius={'6px'} >
-            <Box boxShadow={'rgba(0, 0, 0, 0.1) 0px 4px 12px'} className='content' bg={'#fff'} borderRadius={'4px'}  >
-                <div id={EDITTOR_HOLDER_ID}> </div>
+        <Box p={'20px'} fontFamily={'GTMedium'} >
+            {JSON.stringify(guideCont)}
+            <Box /* bg={'#eef5fa'}*/ p={'27px'} borderRadius={'6px'} >
+                <Box boxShadow={'rgba(0, 0, 0, 0.1) 0px 4px 12px'} className='content' bg={'#fff'} borderRadius={'4px'}  >
+                    <div id={EDITTOR_HOLDER_ID}>
+                    </div>
+                </Box>
             </Box>
+            {
+                JSON.stringify(guideCont && edjsParser.parse(guideCont.content))
+            }
         </Box>
-    );
+    )
 }
-
-export default Editor;

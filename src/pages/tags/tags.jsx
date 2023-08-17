@@ -20,10 +20,11 @@ import { TagsCard } from './TagsCard'
 import EmojiPicker from 'emoji-picker-react';
 import { addDoc, collection, doc, onSnapshot, query, setDoc, where } from 'firebase/firestore'
 import { db } from '../../firebase'
+import { MobileTab } from '../../components/mobileTab'
 
-let arr = [1, 2, 3]
 export const Tags = () => {
     const { currentUser } = useContext(contextObject);
+    const [allCatagories, setAllCatagories] = useState([])
     const [catagories, setCatagories] = useState([])
     const [catagoryState, setCatagoryState] = useState({
         name: '',
@@ -41,9 +42,9 @@ export const Tags = () => {
         await setDoc(ref, {
             name, description,
             id: ref.id,
-            createdBy: currentUser.uid
+            createdBy: currentUser.uid,
+            guideSelected: []
         })
-        { }
         setCatagoryState({
             name: '',
             description: ''
@@ -88,10 +89,27 @@ export const Tags = () => {
 
         }
     }, [currentUser])
+    useEffect(() => {
 
-    console.log(catagories)
+        if (!currentUser) return;
+
+        const q = query(collection(db, "catagories"), where("createdBy", "==", currentUser.uid));
+        onSnapshot(q, (doc) => {
+            let snapshot = [];
+            doc.forEach((el) => snapshot.push(el.data()));
+
+            setAllCatagories(snapshot)
+        });
+
+
+        return () => {
+
+        }
+    }, [currentUser])
     return (
-        <Box>
+        <Flex flexDir={'column'} height={'100vh'} fontFamily={'GTMedium'} >
+            <Box flex={1}>
+
             <Flex mx={'20px'} py={'20px'} alignItems={'center'} sx={headerStyle} justifyContent={'space-between'}>
                 <Box>&nbsp;</Box>
                 <Text fontWeight={700} fontSize={'18px'}>Catagories</Text>
@@ -109,9 +127,9 @@ export const Tags = () => {
 
                 <Grid templateColumns='repeat(2, 1fr)' columnGap={4} rowGap={3}>
                     {
-                        Object.keys(catagories).map((key) => (
+                            allCatagories.map((el) => (
                             <GridItem>
-                                <TagsCard {...catagories[key]} />
+                               <TagsCard {...el} />
                             </GridItem>
                         ))
                     }
@@ -146,8 +164,11 @@ export const Tags = () => {
                         </Button>
                     </ModalFooter>
                 </ModalContent>
-            </Modal>
+                </Modal>
+            </Box>
+            <MobileTab />
 
-        </Box>
+
+        </Flex>
     )
 }
