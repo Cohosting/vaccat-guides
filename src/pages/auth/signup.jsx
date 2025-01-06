@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, Divider, Flex, Image, InputGroup, InputRightElement, Text, Input as TextInput, CheckboxIcon } from '@chakra-ui/react'
+import { Box, Button, Checkbox, Divider, Flex, Image, InputGroup, InputRightElement, Text, Input as TextInput, } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import { Input } from '../../components/Input';
 import { handleChange } from '../../utils/input';
@@ -26,6 +26,7 @@ export const Signup = () => {
 
     const handleSignup = async () => {
 
+        console.log({ password })
         const { user } = await createUserWithEmailAndPassword(auth, email, password);
         await getOrCreateUser(user, signupCredentials);
         navigate('/')
@@ -95,6 +96,11 @@ export const Signup = () => {
                 <Text sx={lableStyle} textTransform={'capitalize'} >Password</Text>
                 <InputGroup flexDir={'column'}>
                     <TextInput type={show ? 'text' : 'password'} sx={inputStyle} focusBorderColor={'rgba(37, 206, 208, 0.8)'}
+
+                        onChange={(e) => setSignupCredentials({
+                            ...signupCredentials,
+                            password: e.target.value,
+                        })}
                     />
                     <InputRightElement onClick={() => setShow(!show)} children={show ? <FiEye /> : <FiEyeOff />} />
                 </InputGroup>
